@@ -41,9 +41,13 @@ namespace Patty_RelicPicker_MOD
             {
                 return;
             }
-            foreach (CollectableRelicData pickedRelic in Plugin.PickedRelics)
+            foreach (KeyValuePair<CollectableRelicData, ConfigEntry<bool>> pickedRelic in Plugin.Entries)
             {
-                CheatManager.Command_AddArtifact(pickedRelic.name);
+                if (pickedRelic.Value.Value == false)
+                {
+                    continue;
+                }
+                CheatManager.Command_AddArtifact(pickedRelic.Key.name);
             }
         }
         [HarmonyPostfix, HarmonyPatch(typeof(LoadScreen), "StartLoadingScreen")]
