@@ -19,20 +19,7 @@ namespace Patty_RelicPicker_MOD
         {
             __result = false;
         }
-
-        [HarmonyPostfix, HarmonyPatch(typeof(AllGameManagers), "Start")]
-        public static void SetupConfigs()
-        {
-            foreach (CollectableRelicData relic in AllGameManagers.Instance.GetAllGameData().GetAllCollectableRelicData())
-            {
-                var definition = new ConfigDefinition("Relic Effects", relic.name);
-                Plugin.Entries[relic] = Plugin.Config.Bind<bool>(definition, false,
-                                        new ConfigDescription(relic.GetDescription(), null, new ConfigurationManagerAttributes
-                                        {
-                                            Browsable = false
-                                        }));
-            }
-        }
+        
         [HarmonyPostfix, HarmonyPatch(typeof(GameStateManager), nameof(GameStateManager.StartGame))]
         public static void StartGame(RunType runType)
         {
@@ -53,11 +40,12 @@ namespace Patty_RelicPicker_MOD
         [HarmonyPostfix, HarmonyPatch(typeof(LoadScreen), "StartLoadingScreen")]
         public static void StartLoadingScreen(LoadScreen __instance, ref ScreenManager.ScreenActiveCallback ___screenActiveCallback)
         {
+            Plugin.InitializeConfigs();
             if (__instance.name == ScreenName.RunSetup)
             {
                 ___screenActiveCallback += delegate (IScreen screen)
                 {
-                    var runSetupScreen = UnityEngine.Object.FindObjectOfType<RunSetupScreen>();
+                    var runSetupScreen = (RunSetupScreen)screen;
                     var mutatorSelectionDialog = (MutatorSelectionDialog)AccessTools.Field(typeof(RunSetupScreen), "mutatorSelectionDialog")
                                                                                     .GetValue(runSetupScreen);
                     var pyreHeartButton = (GameUISelectableButton)AccessTools.Field(typeof(RunSetupScreen), "pyreHeartButton")

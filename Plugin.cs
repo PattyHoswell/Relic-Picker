@@ -19,6 +19,7 @@ namespace Patty_RelicPicker_MOD
         internal static Dictionary<CollectableRelicData, ConfigEntry<bool>> Entries { get; private set; } = new Dictionary<CollectableRelicData, ConfigEntry<bool>>();
         internal new static ConfigFile Config { get; private set; }
         internal static ConfigEntry<bool> EnableOnChallenge { get; private set; }
+        internal static bool InitializedConfigs { get; private set; }
         void Awake()
         {
             Config = base.Config;
@@ -35,6 +36,31 @@ namespace Patty_RelicPicker_MOD
             EnableOnChallenge = Config.Bind<bool>(new ConfigDefinition("Challenge Run", "Enable on Challenge Run"), true,
                                                   new ConfigDescription("Turn this on to start Challenge modes with the relic you chose in the menu."));
 
+        }
+
+        internal static void InitializeConfigs()
+        {
+            if (InitializedConfigs || AllGameManagers.Instance == null)
+            {
+                return;
+            }
+            InitializedConfigs = true;
+            foreach (CollectableRelicData relic in GetAllRelicDatas())
+            {
+                var definition = new ConfigDefinition("Relic Effects", relic.name);
+                Entries[relic] = Config.Bind<bool>(definition, false,
+                                        new ConfigDescription(relic.GetDescription(), null, new ConfigurationManagerAttributes
+                                        {
+                                            Browsable = false
+                                        }));
+            }
+        }
+        internal static IEnumerable<CollectableRelicData> GetAllRelicDatas()
+        {
+            AllGameData allGameData = AllGameManagers.Instance.GetAllGameData();
+            IReadOnlyList<CollectableRelicData> allRelics = allGameData.GetAllCollectableRelicData();
+            return allRelics.Where(relic => relic != null &&
+            AllGameManagers.Instance.GetSaveManager().IsDlcInstalled(relic.GetRequiredDLC()));
         }
     }
 }
