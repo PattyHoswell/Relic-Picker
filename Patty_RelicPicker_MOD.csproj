@@ -66,9 +66,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\MonsterTrain2_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MonsterTrain2_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConfigurationManagerAttributes.cs" />
+    <Compile Include="ModButtonInfo.cs" />
+    <Compile Include="ModButtonTooltip.cs" />
+    <Compile Include="ModButtonUI.cs" />
+    <Compile Include="ModOptionDialog.cs" />
     <Compile Include="PatchList.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PluginInfo.cs" />

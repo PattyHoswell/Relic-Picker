@@ -24,19 +24,50 @@ namespace Patty_RelicPicker_MOD
         public static void StartGame(RunType runType)
         {
             if (runType == RunType.MalickaChallenge &&
-                (bool)Plugin.EnableOnChallenge.BoxedValue == false)
+                Plugin.EnableOnChallenge.Value == false)
             {
                 return;
             }
-            foreach (KeyValuePair<CollectableRelicData, ConfigEntry<bool>> pickedRelic in Plugin.Entries)
+            foreach (var entry in Plugin.Entries.OrderBy(pair => pair.Key.GetName()))
             {
-                if (pickedRelic.Value.Value == false)
+                if (entry.Value.Value == false)
                 {
                     continue;
                 }
-                CheatManager.Command_AddArtifact(pickedRelic.Key.name);
+                if (entry.Key is SinsData &&
+                    Plugin.ShowEnemyRelics.Value == false)
+                {
+                    continue;
+                }
+                if (entry.Key is CovenantData &&
+                    Plugin.ShowCovenantRelics.Value == false)
+                {
+                    continue;
+                }
+                if (entry.Key is MutatorData &&
+                    Plugin.ShowMutatorRelics.Value == false)
+                {
+                    continue;
+                }
+                if (entry.Key is PyreArtifactData &&
+                    Plugin.ShowPyreArtifactRelics.Value == false)
+                {
+                    continue;
+                }
+                if (entry.Key is EndlessMutatorData &&
+                    Plugin.ShowEndlessMutatorRelics.Value == false)
+                {
+                    continue;
+                }
+                if (entry.Key is EnhancerData &&
+                    Plugin.ShowEnhancerRelics.Value == false)
+                {
+                    continue;
+                }
+                AllGameManagers.Instance.GetSaveManager().AddRelic(entry.Key);
             }
         }
+
         [HarmonyPostfix, HarmonyPatch(typeof(LoadScreen), "StartLoadingScreen")]
         public static void StartLoadingScreen(LoadScreen __instance, ref ScreenManager.ScreenActiveCallback ___screenActiveCallback)
         {

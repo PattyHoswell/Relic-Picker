@@ -10,6 +10,6 @@ namespace Patty_RelicPicker_MOD
     {
         public const string GUID = "Patty_RelicPicker_MOD";
         public const string Name = "Relic Picker";
-        public const string Version = "1.1.0";
+        public const string Version = "2.0.0";
     }
 }

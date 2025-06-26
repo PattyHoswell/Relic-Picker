@@ -16,7 +16,7 @@ namespace Patty_RelicPicker_MOD
     {
         public GameUISelectableButton Button { get; private set; }
         public bool Chosen { get; private set; }
-        public CollectableRelicData RelicData {  get; private set; }
+        public RelicData Data {  get; private set; }
         private Image icon;
         private TextMeshProUGUI titleLabel, descriptionLabel;
         private ColorSwapper selectedColorSwapper;
@@ -55,28 +55,21 @@ namespace Patty_RelicPicker_MOD
         public void Clear()
         {
             gameObject.SetActive(false);
-            RelicData = null;
+            Data = null;
         }
-        public void Set(CollectableRelicData data)
+        public void Set(RelicData data)
         {
             Setup();
-            RelicData = data;
+            Data = data;
             icon.sprite = data.GetIcon();
             titleLabel.SetTextSafe(data.GetName(), true);
             descriptionLabel.SetTextSafe(data.GetDescription(), true);
+            ToggleChosenState(Plugin.Entries[Data].Value);
         }
         public void ToggleChosenState(bool chosen)
         {
             Chosen = chosen;
-            if (Chosen)
-            {
-                Plugin.PickedRelics.Add(RelicData);
-            }
-            else
-            {
-                Plugin.PickedRelics.Remove(RelicData);
-            }
-            Plugin.Entries[RelicData].BoxedValue = Chosen;
+            Plugin.Entries[Data].Value = Chosen;
             // Swap the chosen palette, so enabled will be highlighted
             var num = (chosen ? 1f : 0.5f);
             titleLabel.color = titleLabel.color.SetAlpha(num);

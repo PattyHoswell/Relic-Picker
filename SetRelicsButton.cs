@@ -68,7 +68,8 @@ namespace Patty_RelicPicker_MOD
                                                .transform.Find(nameof(RelicSelectionDialog))
                                                .GetComponent<RelicSelectionDialog>();
             }
-            RelicSelectionDialog.Instance.Open();
+            RelicSelectionDialog.Instance.enabled = true;
+            RelicSelectionDialog.Instance.gameObject.SetActive(true);
         }
     }
 }
