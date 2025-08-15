@@ -1,6 +1,4 @@
-﻿using BepInEx;
-using BepInEx.Configuration;
-using DG.Tweening.Core.Easing;
+﻿using BepInEx.Configuration;
 using HarmonyLib;
 using I2.Loc;
 using ShinyShoe;
@@ -9,12 +7,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Security.Policy;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Patty_RelicPicker_MOD
@@ -29,8 +23,9 @@ namespace Patty_RelicPicker_MOD
         Button closeButton;
         List<RelicButtonUI> relicButtons = new List<RelicButtonUI>();
         TextMeshProUGUI title, warning;
+
         internal Image bg;
-        internal static RelicSelectionDialog Instance {  get; set; }
+        internal static RelicSelectionDialog Instance { get; set; }
         bool initialized, initializedOptions;
 
         internal static string allClanName;
@@ -48,6 +43,12 @@ namespace Patty_RelicPicker_MOD
         internal GameUISelectableDropdown factionDropdown;
         internal GameUISelectableDropdown rarityDropdown;
         internal GameUISelectableDropdown customDropdown;
+
+
+        internal RelicInfoUI tooltipProvider;
+        internal UIElementTooltipContainer tooltipContainer;
+        internal RectTransform tooltipParent;
+        internal RelicButtonUI focusedRelicButton;
 
         internal Transform preview;
 
@@ -121,6 +122,40 @@ namespace Patty_RelicPicker_MOD
             GenerateRelicEntry();
             SetupOptions();
             SetupResetButton(FindObjectOfType<UIFooter>());
+            SetupTooltip();
+        }
+
+        internal void SetupTooltip()
+        {
+            if (!Plugin.ShowTooltips.Value)
+            {
+                return;
+            }
+            if (tooltipParent != null)
+            {
+                return;
+            }
+            tooltipParent = new GameObject("Tooltips").AddComponent<RectTransform>();
+            tooltipParent.transform.SetParent(transform, false);
+            tooltipParent.transform.SetAsLastSibling();
+            tooltipParent.gameObject.layer = LayerMask.NameToLayer("UI");
+
+            var provider = FindObjectOfType<RelicInfoUI>(true);
+            if (provider != null)
+            {
+                tooltipProvider = Instantiate(provider, tooltipParent.transform);
+                tooltipProvider.name = "Tooltip Provider";
+                tooltipProvider.gameObject.SetActive(false);
+                tooltipProvider.SetStatusEffectManager(AllGameManagers.Instance.GetStatusEffectManager());
+                tooltipProvider.SetTooltipSide(TooltipSide.Right);
+            }
+
+            var container = FindObjectOfType<UIElementTooltipContainer>(true);
+            if (container != null)
+            {
+                tooltipContainer = Instantiate(container, tooltipParent.transform);
+                tooltipContainer.name = "Tooltip Container";
+            }
         }
 
         private void SetupResetButton(UIFooter uiFooter)
@@ -325,7 +360,7 @@ namespace Patty_RelicPicker_MOD
             LoadRelics(selectedRarity, selectedFaction);
         }
 
-        GameUISelectableDropdown CreateDropdownWithOptions(Transform parent, 
+        GameUISelectableDropdown CreateDropdownWithOptions(Transform parent,
                                                            OrderedDictionary translatedTerms = null,
                                                            HashSet<string> customOptions = null)
         {
@@ -358,6 +393,7 @@ namespace Patty_RelicPicker_MOD
             });
             return dropdown;
         }
+
         void SetupDropdownButtonListeners(GameUISelectableDropdown targetDropdown)
         {
             foreach (var button in targetDropdown.GetComponentsInChildren<GameUISelectableButton>(true))
@@ -373,6 +409,7 @@ namespace Patty_RelicPicker_MOD
                 });
             }
         }
+
         IEnumerator CreateDropdownList()
         {
             foreach (Transform transform in preview)
@@ -385,8 +422,24 @@ namespace Patty_RelicPicker_MOD
             {
                 dropdownPrefab = FindObjectOfType<GameUISelectableDropdown>(true);
             }
+
             factionDropdown = CreateDropdownWithOptions(preview, customOptions: FactionNames);
             rarityDropdown = CreateDropdownWithOptions(preview, Plugin.RelicRarityTranslationTerm);
+
+            // Honestly there should be a better way of doing this than having to write it manually
+            // But I'm not gonna bother spending more time on it as there will only be like 3 dropdown anyways
+            factionDropdown.onClick.AddListener(() =>
+            {
+                rarityDropdown.Close();
+                customDropdown.Close();
+            });
+
+            rarityDropdown.onClick.AddListener(() =>
+            {
+                factionDropdown.Close();
+                customDropdown.Close();
+            });
+
             yield return null;
             SetupDropdownButtonListeners(factionDropdown);
             SetupDropdownButtonListeners(rarityDropdown);
@@ -399,7 +452,7 @@ namespace Patty_RelicPicker_MOD
                 }
                 selectedFactionString = optionName;
                 selectedFaction = (ClassData)RelicFactionOptions[optionName];
-                LoadRelics(selectedRarity, selectedFaction);
+                LoadRelics(selectedRarity, selectedFaction, selectedCustom);
             });
 
             rarityDropdown.optionChosenSignal.AddListener(delegate (int index, string optionName)
@@ -409,7 +462,7 @@ namespace Patty_RelicPicker_MOD
                     return;
                 }
                 selectedRarity = (CollectableRarity)RelicRarityOptions[optionName];
-                LoadRelics(selectedRarity, selectedFaction);
+                LoadRelics(selectedRarity, selectedFaction, selectedCustom);
             });
 
             factionDropdown.SetIndex(1);
@@ -428,6 +481,13 @@ namespace Patty_RelicPicker_MOD
                 dropdownPrefab = FindObjectOfType<GameUISelectableDropdown>(true);
             }
             customDropdown = CreateDropdownWithOptions(preview, customOptions: CustomNames);
+
+            customDropdown.onClick.AddListener(() =>
+            {
+                factionDropdown.Close();
+                rarityDropdown.Close();
+            });
+
             yield return null;
             SetupDropdownButtonListeners(customDropdown);
             customDropdown.optionChosenSignal.AddListener(delegate (int index, string optionName)
@@ -612,6 +672,46 @@ namespace Patty_RelicPicker_MOD
             }
 
             ResetOrder();
+        }
+
+
+        void LateUpdate()
+        {
+            UpdateTooltipPosition();
+        }
+
+        void UpdateTooltipPosition()
+        {
+            if (focusedRelicButton == null)
+            {
+                return;
+            }
+            var offset = new Vector3(-120, -260);
+            tooltipParent.transform.position = Input.mousePosition + offset;
+            tooltipContainer.ForceUpdateLayoutAndPosition();
+        }
+
+        internal void SetHoveredRelic(RelicButtonUI relicButton)
+        {
+            if (relicButton == null || !Plugin.ShowTooltips.Value)
+            {
+                focusedRelicButton = null;
+                if (tooltipContainer != null)
+                {
+                    tooltipContainer.DisableTooltips();
+                }
+                return;
+            }
+            if (tooltipContainer == null ||
+                tooltipProvider == null)
+            {
+                return;
+            }
+            focusedRelicButton = relicButton;
+            tooltipProvider.Set(focusedRelicButton.Data);
+            tooltipContainer.ShowTooltipsForProvider(tooltipProvider, UIElementTooltipManager.ForcedDuration.Persistent);
+            tooltipProvider.gameObject.SetActive(false);
+            UpdateTooltipPosition();
         }
     }
 }

@@ -81,6 +81,14 @@ namespace Patty_RelicPicker_MOD
             gameObject.SetActive(true);
         }
 
+        private void OnDestroy()
+        {
+            if (info.entry != null)
+            {
+                info.entry.SettingChanged -= Entry_SettingChanged;
+            }
+        }
+
         private void Entry_SettingChanged(object sender, EventArgs e)
         {
             var eventArgs = (SettingChangedEventArgs)e;

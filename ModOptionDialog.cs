@@ -1,13 +1,7 @@
-﻿using BepInEx;
-using I2.Loc;
-using Patty_RelicPicker_MOD;
+﻿using I2.Loc;
 using ShinyShoe;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -129,6 +123,7 @@ namespace Patty_RelicPicker_MOD
             yield return new ModButtonInfo(Plugin.ShowPyreArtifactRelics, 25, (toggled) => relicSelectionDialog.ResetMenu());
             yield return new ModButtonInfo(Plugin.ShowEndlessMutatorRelics, 25, (toggled) => relicSelectionDialog.ResetMenu());
             yield return new ModButtonInfo(Plugin.ShowEnhancerRelics, 25, (toggled) => relicSelectionDialog.ResetMenu());
+            yield return new ModButtonInfo(Plugin.ShowTooltips, 25, (toggled) => relicSelectionDialog.SetupTooltip());
         }
 
         private void InitializeBasicComponents()

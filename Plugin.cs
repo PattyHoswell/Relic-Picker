@@ -2,12 +2,9 @@
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
-using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Patty_RelicPicker_MOD
 {
@@ -18,6 +15,7 @@ namespace Patty_RelicPicker_MOD
         internal static Harmony PluginHarmony { get; private set; }
         internal static Dictionary<RelicData, ConfigEntry<bool>> Entries { get; private set; } = new Dictionary<RelicData, ConfigEntry<bool>>();
         internal new static ConfigFile Config { get; private set; }
+
         internal static ConfigEntry<bool> EnableOnChallenge { get; private set; }
         internal static ConfigEntry<bool> ShowUncollectableRelics { get; private set; }
         internal static ConfigEntry<bool> ShowEnemyRelics { get; private set; }
@@ -26,6 +24,9 @@ namespace Patty_RelicPicker_MOD
         internal static ConfigEntry<bool> ShowPyreArtifactRelics { get; private set; }
         internal static ConfigEntry<bool> ShowEndlessMutatorRelics { get; private set; }
         internal static ConfigEntry<bool> ShowEnhancerRelics { get; private set; }
+
+        internal static ConfigEntry<bool> ShowTooltips { get; private set; }
+
         internal static bool InitializedConfigs { get; private set; }
 
         #region Translation
@@ -64,7 +65,7 @@ namespace Patty_RelicPicker_MOD
             }
             catch (HarmonyException ex)
             {
-                LogSource.LogError((ex.InnerException ?? ex).Message); 
+                LogSource.LogError((ex.InnerException ?? ex).Message);
             }
 
             EnableOnChallenge = Config.Bind<bool>(new ConfigDefinition("Basic", "Enable on Challenge Run"), true,
@@ -77,19 +78,22 @@ namespace Patty_RelicPicker_MOD
                                                 new ConfigDescription("Enable to show enemy relic (Some can be error). Proceed with caution."));
 
             ShowCovenantRelics = Config.Bind<bool>(new ConfigDefinition("Basic", "Show Covenant Relics"), false,
-                                                new ConfigDescription("Enable to show covenant relic (Some can be error). Proceed with caution."));
+                                                   new ConfigDescription("Enable to show covenant relic (Some can be error). Proceed with caution."));
 
             ShowMutatorRelics = Config.Bind<bool>(new ConfigDefinition("Basic", "Show Mutator Relics"), false,
-                                                new ConfigDescription("Enable to show mutator relic (Some can be error). Proceed with caution."));
+                                                  new ConfigDescription("Enable to show mutator relic (Some can be error). Proceed with caution."));
 
             ShowPyreArtifactRelics = Config.Bind<bool>(new ConfigDefinition("Basic", "Show Pyre Artifacts Relics"), false,
-                                                new ConfigDescription("Enable to show pyre artifacts relic (Some can be error). Proceed with caution."));
+                                                       new ConfigDescription("Enable to show pyre artifacts relic (Some can be error). Proceed with caution."));
 
             ShowEndlessMutatorRelics = Config.Bind<bool>(new ConfigDefinition("Basic", "Show Endless Mutator Relics"), true,
-                                                new ConfigDescription("Enable to show endless mutator relic (Some can be error). Proceed with caution."));
+                                                         new ConfigDescription("Enable to show endless mutator relic (Some can be error). Proceed with caution."));
 
             ShowEnhancerRelics = Config.Bind<bool>(new ConfigDefinition("Basic", "Show Enhancer Relics"), false,
-                                                new ConfigDescription("Enable to show enhancer relic (Some can be error). Proceed with caution."));
+                                                   new ConfigDescription("Enable to show enhancer relic (Some can be error). Proceed with caution."));
+
+            ShowTooltips = Config.Bind<bool>(new ConfigDefinition("Basic", "Show Tooltips"), true,
+                                             new ConfigDescription("Show tooltips when hovering into a relic in the menu."));
 
         }
         internal static AllGameData GetAllGameData()

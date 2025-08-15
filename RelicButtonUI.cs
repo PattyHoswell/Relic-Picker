@@ -1,29 +1,49 @@
-﻿using ShinyShoe;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using DG.Tweening;
+using ShinyShoe;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using DG.Tweening;
-using BepInEx.Configuration;
 
 namespace Patty_RelicPicker_MOD
 {
-    internal class RelicButtonUI : MonoBehaviour
+    internal class RelicButtonUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         public GameUISelectableButton Button { get; private set; }
         public bool Chosen { get; private set; }
-        public RelicData Data {  get; private set; }
+        public RelicData Data { get; private set; }
         private Image icon;
         private TextMeshProUGUI titleLabel, descriptionLabel;
         private ColorSwapper selectedColorSwapper;
         private bool initialized;
+
         private void Start()
         {
             Setup();
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (RelicSelectionDialog.Instance == null ||
+                RelicSelectionDialog.Instance.tooltipProvider == null)
+            {
+                return;
+            }
+            if (Data == null)
+            {
+                return;
+            }
+            RelicSelectionDialog.Instance.SetHoveredRelic(this);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (RelicSelectionDialog.Instance == null ||
+                RelicSelectionDialog.Instance.tooltipProvider == null)
+            {
+                return;
+            }
+            RelicSelectionDialog.Instance.SetHoveredRelic(null);
         }
 
         private void Setup()
