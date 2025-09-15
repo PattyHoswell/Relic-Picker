@@ -1,14 +1,7 @@
-﻿using BepInEx.Configuration;
-using BepInEx.Logging;
-using HarmonyLib;
+﻿using HarmonyLib;
 using ShinyShoe;
 using ShinyShoe.Loading;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine;
 
 namespace Patty_RelicPicker_MOD
 {
@@ -19,7 +12,7 @@ namespace Patty_RelicPicker_MOD
         {
             __result = false;
         }
-        
+
         [HarmonyPostfix, HarmonyPatch(typeof(GameStateManager), nameof(GameStateManager.StartGame))]
         public static void StartGame(RunType runType)
         {

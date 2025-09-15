@@ -1,12 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
-using Patty_RelicPicker_MOD;
 using ShinyShoe;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -133,11 +128,12 @@ namespace Patty_RelicPicker_MOD
             bg.color = Color.clear;
 
             var toggleButton = Instantiate(FindObjectOfType<GameUISelectableToggle>(true), background.transform);
+            toggleButton.gameObject.SetActive(true);
             toggleButton.name = "Option Toggle";
             toggleButton.onClick = new Button.ButtonClickedEvent();
             toggleButton.transform.GetChild(0).gameObject.SetActive(false);
             toggleButton.transform.GetChild(2).gameObject.SetActive(false);
-            toggleButton.transform.localPosition = new Vector2(62, 55);
+            toggleButton.transform.localPosition = new Vector2(-106, 55);
             modButtonUI.toggleButton = toggleButton;
 
             var toggleRT = toggleButton.GetComponent<RectTransform>();
