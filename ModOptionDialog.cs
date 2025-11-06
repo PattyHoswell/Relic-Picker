@@ -1,4 +1,5 @@
-﻿using I2.Loc;
+﻿using BepInEx.Bootstrap;
+using I2.Loc;
 using ShinyShoe;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,6 +73,11 @@ namespace Patty_RelicPicker_MOD
                 var modButton = Instantiate(layout, scrollRect.content);
                 modButton.modDialog = this;
                 modButton.Set(buttonInfo);
+                if (Chainloader.PluginInfos.ContainsKey("Patty_SoundChanger_MOD"))
+                {
+                    var xOffset = -357;
+                    modButton.toggleButton.GetComponent<RectTransform>().anchoredPosition = new Vector2(xOffset, 7);
+                }
                 modButtons.Add(modButton);
             }
             ResetOrder();
