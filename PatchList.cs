@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using ShinyShoe;
 using ShinyShoe.Loading;
+using System.Collections;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 namespace Patty_RelicPicker_MOD
 {
@@ -60,6 +62,46 @@ namespace Patty_RelicPicker_MOD
                 AllGameManagers.Instance.GetSaveManager().AddRelic(entry.Key);
             }
         }
+        public static IEnumerator LoadRunSetupScreenCoroutine(SoulSaviorRunSetupScreen saviourRunScreen)
+        {
+            yield return null;
+            if (SceneManager.GetSceneByName("run_setup").isLoaded == false)
+            {
+                SceneManager.LoadScene("run_setup", LoadSceneMode.Additive);
+            }
+            yield return null;
+            yield return null;
+
+
+            RunSetupScreen runSetupScreen = (RunSetupScreen)AllGameManagers.Instance.GetScreenManager().GetScreen(ScreenName.RunSetup);
+            var mutatorSelectionDialog = (MutatorSelectionDialog)AccessTools.Field(typeof(RunSetupScreen), "mutatorSelectionDialog")
+                                                                            .GetValue(runSetupScreen);
+            var pyreHeartButton = (GameUISelectableButton)AccessTools.Field(typeof(RunSetupScreen), "pyreHeartButton")
+                                                                     .GetValue(runSetupScreen);
+            var startButton = (GameUISelectableButton)AccessTools.Field(typeof(SoulSaviorRunSetupScreen), "startButton")
+                                                                     .GetValue(saviourRunScreen);
+            if (mutatorSelectionDialog == null ||
+                pyreHeartButton == null)
+            {
+                Plugin.LogSource.LogError("Waaaaaaaat");
+                yield break;
+            }
+            var clonedDialog = UnityEngine.Object.Instantiate(mutatorSelectionDialog, saviourRunScreen.transform);
+            RelicSelectionDialog.Instance = clonedDialog.gameObject.AddComponent<RelicSelectionDialog>();
+            RelicSelectionDialog.Instance.name = nameof(RelicSelectionDialog);
+            RelicSelectionDialog.Instance.Setup();
+            UnityEngine.Object.DestroyImmediate(clonedDialog.gameObject.GetComponent<MutatorSelectionDialog>());
+
+            var clonedPyreHeartButton = UnityEngine.Object.Instantiate(pyreHeartButton.transform.parent.parent,
+                                                                       startButton.transform.parent.parent);
+            clonedPyreHeartButton.gameObject.AddComponent<SetRelicsButton>();
+            UnityEngine.Object.DestroyImmediate(clonedPyreHeartButton.gameObject.GetComponent<PyreHeartInfoUI>());
+
+            yield return null;
+            yield return SceneManager.UnloadSceneAsync("run_setup");
+            yield return null;
+            AllGameManagers.Instance.GetScreenManager().SetScreenActive(ScreenName.SoulSaviorRunSetup, true);
+        }
 
         [HarmonyPostfix, HarmonyPatch(typeof(LoadScreen), "StartLoadingScreen")]
         public static void StartLoadingScreen(LoadScreen __instance, ref ScreenManager.ScreenActiveCallback ___screenActiveCallback)
@@ -90,6 +132,15 @@ namespace Patty_RelicPicker_MOD
                                                                                pyreHeartButton.transform.parent.parent.parent);
                     clonedPyreHeartButton.gameObject.AddComponent<SetRelicsButton>();
                     UnityEngine.Object.DestroyImmediate(clonedPyreHeartButton.gameObject.GetComponent<PyreHeartInfoUI>());
+                };
+            }
+            if (__instance.name == ScreenName.SoulSaviorRunSetup)
+            {
+                ___screenActiveCallback += delegate (IScreen screen)
+                {
+                    var saviourRunScreen = (SoulSaviorRunSetupScreen)screen;
+
+                    saviourRunScreen.StartCoroutine(LoadRunSetupScreenCoroutine(saviourRunScreen));
                 };
             }
         }
